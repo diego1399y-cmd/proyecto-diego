@@ -52,5 +52,5 @@ Thumbs.db
 # =============================================================================
 # **/soluciones/
 
-   # Dataset DataCo (pesado, se descarga de Kaggle)
-   data/raw/*.csv
+# Dataset DataCo (pesado, se descarga de Kaggle)
+data/raw/*.csv
