@@ -1,6 +1,6 @@
 # Predicción de entregas tardías en la cadena de suministro
 
-> Modelo de clasificación que predice si un pedido llegará tarde a partir de sus datos de envío, cliente y producto, para que el área de logística pueda priorizar pedidos en riesgo. Proyecto del curso Proyecto (I).
+> Modelo de clasificación que predice si un pedido llegará tarde a partir de sus datos de envío, cliente y producto, para que el área de logística pueda priorizar pedidos en riesgo.    Proyecto del curso Proyecto 1: Introducción a la Analítica.
 
 ## Equipo
 
