@@ -54,3 +54,5 @@ Thumbs.db
 
 # Dataset DataCo (pesado, se descarga de Kaggle)
 data/raw/*.csv
+data/raw/*.zip
+notebooks/referencia.ipynb
