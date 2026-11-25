@@ -25,7 +25,7 @@
 - **Descripción:** pedidos de la empresa DataCo Global entre enero de 2015 y enero de 2018, con información del envío, el cliente, el producto, las ventas y el destino.
 - **Una fila es:** un producto dentro de un pedido (línea de pedido).
 - **Tamaño:** 180.519 filas × 53 columnas (172.765 filas después de la limpieza).
-- **Variable objetivo:** `Late_delivery_risk` (1 = entrega tardía, 0 = entrega a tiempo). 54,8 % de las filas son tardías.
+- **Variable objetivo:** `Late_delivery_risk` (1 = entrega tardía, 0 = entrega a tiempo). 57,3 % de las filas son tardías después de la limpieza (54,8 % en los datos originales).
 - **Tipo de problema:** clasificación binaria.
 - **Archivo:** `data/raw/dataco.csv`. No se sube al repositorio porque pesa 95 MB: se descarga de Kaggle (`DataCoSupplyChainDataset.csv`) y se guarda con ese nombre.
 
@@ -94,7 +94,20 @@
 3. **El mercado de destino y las características del pedido no cambian el retraso:** a igual modo de envío, los 5 mercados difieren como máximo 5 puntos porcentuales.
 
 El análisis completo, la limpieza y el registro de decisiones están en [`notebooks/proyecto_equipo.ipynb`](notebooks/proyecto_equipo.ipynb).
+## Resultados del modelo
 
+Se compararon tres modelos en los datos de prueba (20 %, 34.553 filas). La clase positiva es **1 = pedido tarde**.
+
+| Modelo | Accuracy | Precision | Recall | F1 |
+|---|---|---|---|---|
+| *Baseline* (siempre "tarde") | 0,573 | 0,573 | 1,000 | 0,728 |
+| Regresión logística | 0,698 | 0,885 | 0,543 | 0,673 |
+| **Árbol de decisión (elegido)** | **0,699** | **0,870** | **0,557** | **0,679** |
+
+- **Criterio de éxito: no se cumple.** El recall es 0,557 (meta: 0,80) y el F1 queda por debajo del *baseline*. El *baseline* tiene recall y F1 altos solo porque marca todos los pedidos como tardíos, lo que no sirve para priorizar.
+- **Lo que sí logra:** cuando el modelo marca un pedido como tardío, acierta 87 de cada 100 veces (frente a 57 del *baseline*). Sin *overfitting*: train y test dan casi igual.
+- **Dónde falla:** detecta el 100 % de los tardíos de First Class y Second Class, pero **ninguno de Standard Class**. Las variables disponibles no explican qué pedidos de Standard Class se retrasan.
+- **Conclusión para el negocio:** el retraso depende sobre todo del modo de envío y de una promesa de entrega mal calculada. Ajustar los días prometidos de First y Second Class tendría más impacto que el modelo.
 ## Cómo ejecutar
 
 ```bash
@@ -121,6 +134,6 @@ Abrir `notebooks/proyecto_equipo.ipynb` con el kernel `.venv` y ejecutar todo (*
 - [x] 01 Repositorio en GitHub
 - [x] 02 Problema, KPIs y comprensión de los datos
 - [x] 03 Limpieza y EDA
-- [ ] 04 Modelado y métricas
+- [x] 04 Modelado y métricas
 - [ ] 05 Pipeline y API
 - [ ] 06 Entrega final
