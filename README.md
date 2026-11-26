@@ -94,6 +94,7 @@
 3. **El mercado de destino y las características del pedido no cambian el retraso:** a igual modo de envío, los 5 mercados difieren como máximo 5 puntos porcentuales.
 
 El análisis completo, la limpieza y el registro de decisiones están en [`notebooks/proyecto_equipo.ipynb`](notebooks/proyecto_equipo.ipynb).
+
 ## Resultados del modelo
 
 Se compararon tres modelos en los datos de prueba (20 %, 34.553 filas). La clase positiva es **1 = pedido tarde**.
@@ -108,24 +109,81 @@ Se compararon tres modelos en los datos de prueba (20 %, 34.553 filas). La clase
 - **Lo que sí logra:** cuando el modelo marca un pedido como tardío, acierta 87 de cada 100 veces (frente a 57 del *baseline*). Sin *overfitting*: train y test dan casi igual.
 - **Dónde falla:** detecta el 100 % de los tardíos de First Class y Second Class, pero **ninguno de Standard Class**. Las variables disponibles no explican qué pedidos de Standard Class se retrasan.
 - **Conclusión para el negocio:** el retraso depende sobre todo del modo de envío y de una promesa de entrega mal calculada. Ajustar los días prometidos de First y Second Class tendría más impacto que el modelo.
+
 ## Cómo ejecutar
 
+Requisitos: [uv](https://docs.astral.sh/uv/) y el archivo `data/raw/dataco.csv` descargado de Kaggle (ver [Dataset](#dataset)).
+
 ```bash
+# 1. Instalar dependencias
 uv sync
-uv run jupyter lab
+
+# 2. Limpiar los datos -> data/processed/datos_limpios.csv
+uv run python -m proyecto_diego.limpieza
+
+# 3. Entrenar el modelo -> models/modelo.joblib y models/modelo.json
+uv run python -m proyecto_diego.train
+
+# 4. Levantar la API
+uv run uvicorn api.main:app --reload
+
+# 5. Correr las pruebas (en otra terminal, con el modelo ya entrenado)
+uv run pytest -v
 ```
 
-Abrir `notebooks/proyecto_equipo.ipynb` con el kernel `.venv` y ejecutar todo (*Run All*).
+El análisis completo está en `notebooks/proyecto_equipo.ipynb` (kernel `.venv`, *Run All*). Los scripts del paso 2 y 3 reproducen exactamente la limpieza y el modelo del notebook.
+
+## API
+
+Documentación interactiva: http://127.0.0.1:8000/docs
+
+| Método | Ruta | Qué hace |
+|---|---|---|
+| GET | `/health` | Indica si la API está activa y si el modelo está cargado |
+| GET | `/model-info` | Muestra el modelo en uso y sus métricas en test |
+| POST | `/predict` | Recibe un pedido y devuelve si se espera que llegue tarde |
+
+Ejemplo de entrada para `/predict`:
+
+```json
+{
+  "modo_envio": "First Class",
+  "tipo_pago": "DEBIT",
+  "mercado": "LATAM",
+  "segmento_cliente": "Consumer",
+  "cantidad": 2,
+  "venta": 120.5,
+  "tasa_descuento": 0.1,
+  "mes_pedido": 6,
+  "dia_semana_pedido": 2
+}
+```
+
+Respuesta:
+
+```json
+{
+  "llega_tarde": true,
+  "probabilidad_tarde": 1.0,
+  "recomendacion": "Priorizar este pedido y avisar al cliente de un posible retraso."
+}
+```
+
+Si faltan campos o un valor no es válido (por ejemplo, `mes_pedido: 13`), la API responde **422**. Si el modelo no se ha entrenado, responde **503**.
 
 ## Estructura
 
 ```
+├── api/               ← API con FastAPI (main.py, schemas.py)
 ├── data/raw/          ← datos originales (dataco.csv, no se sube)
-├── data/processed/    ← datos limpios (generados por el notebook)
-├── docs/              ← respuestas y acuerdos
+├── data/processed/    ← datos limpios (generados por limpieza.py)
+├── docs/              ← documentación del proyecto
+├── models/            ← modelo entrenado (generado por train.py, no se sube)
 ├── notebooks/         ← notebook del proyecto
-├── src/               ← código reutilizable
-└── models/            ← modelos entrenados (generados)
+├── src/proyecto_diego/
+│   ├── limpieza.py    ← limpieza reproducible
+│   └── train.py       ← entrenamiento y métricas
+└── tests/             ← pruebas de la API (pytest)
 ```
 
 ## Avance
@@ -135,5 +193,5 @@ Abrir `notebooks/proyecto_equipo.ipynb` con el kernel `.venv` y ejecutar todo (*
 - [x] 02 Problema, KPIs y comprensión de los datos
 - [x] 03 Limpieza y EDA
 - [x] 04 Modelado y métricas
-- [ ] 05 Pipeline y API
+- [x] 05 Pipeline y API
 - [ ] 06 Entrega final
